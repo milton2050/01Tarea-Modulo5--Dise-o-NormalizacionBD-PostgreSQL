@@ -88,21 +88,7 @@ facultades  ──< usuarios
 - PostgreSQL 13 o superior
 - pgAdmin 4 (opcional, para interfaz gráfica)
 
-### Pasos de instalación
 
-```bash
-# 1. Clonar el repositorio
-git clone https://github.com/TU_USUARIO/biblioteca-universitaria-db.git
-cd biblioteca-universitaria-db
-
-# 2. Crear la base de datos en PostgreSQL
-psql -U postgres -c "CREATE DATABASE biblioteca_universitaria;"
-
-# 3. Ejecutar el script principal
-psql -U postgres -d biblioteca_universitaria -f biblioteca.sql
-
-# 4. Verificar la instalación
-psql -U postgres -d biblioteca_universitaria -c "\dt"
 ```
 
 ### Verificación de datos
@@ -148,18 +134,6 @@ FROM ejemplares ej
 JOIN libros l ON ej.id_libro = l.id_libro
 WHERE l.isbn = '978-0-07-352332-3'
   AND ej.estado = 'disponible';
-```
-
----
-
-## 📁 Estructura del Repositorio
-
-```
-biblioteca-universitaria-db/
-├── biblioteca.sql          # Script principal DDL + DML
-├── README.md               # Este archivo
-└── docs/
-    └── MER_biblioteca.png  # Diagrama Entidad-Relación
 ```
 
 ---
