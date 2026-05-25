@@ -1,0 +1,150 @@
+
+<style>
+#erd-wrap { padding: 8px 0; overflow-x: auto; }
+#erd-wrap svg { max-width: 100%; }
+.erd-title { font-size: 15px; font-weight: 500; color: var(--color-text-primary); margin: 0 0 10px; }
+</style>
+<h2 class="erd-title">Diagrama MER — Sistema de Biblioteca Universitaria</h2>
+<div id="erd-wrap"></div>
+<script type="module">
+import mermaid from 'https://esm.sh/mermaid@11/dist/mermaid.esm.min.mjs';
+const dark = matchMedia('(prefers-color-scheme: dark)').matches;
+await document.fonts.ready;
+mermaid.initialize({
+  startOnLoad: false,
+  theme: 'base',
+  fontFamily: '"Anthropic Sans", sans-serif',
+  themeVariables: {
+    darkMode: dark,
+    fontSize: '12px',
+    fontFamily: '"Anthropic Sans", sans-serif',
+    lineColor: dark ? '#9c9a92' : '#73726c',
+    textColor: dark ? '#c2c0b6' : '#3d3d3a',
+    primaryColor: dark ? '#1D2D44' : '#E6F1FB',
+    primaryBorderColor: dark ? '#378ADD' : '#185FA5',
+    primaryTextColor: dark ? '#c2c0b6' : '#3d3d3a',
+  },
+});
+
+const diagram = `erDiagram
+    CATEGORIAS {
+        serial id_categoria PK
+        varchar nombre
+        text descripcion
+        date fecha_creacion
+    }
+    EDITORIALES {
+        serial id_editorial PK
+        varchar nombre
+        varchar pais_origen
+        varchar sitio_web
+        varchar email_contacto
+    }
+    AUTORES {
+        serial id_autor PK
+        varchar nombres
+        varchar apellidos
+        varchar nacionalidad
+        date fecha_nacimiento
+    }
+    LIBROS {
+        serial id_libro PK
+        varchar isbn
+        varchar titulo
+        smallint anio_publicacion
+        smallint edicion
+        int id_categoria FK
+        int id_editorial FK
+    }
+    LIBRO_AUTORES {
+        int id_libro FK
+        int id_autor FK
+        smallint orden_autor
+    }
+    EJEMPLARES {
+        serial id_ejemplar PK
+        int id_libro FK
+        varchar codigo_barras
+        varchar ubicacion
+        varchar estado
+        varchar condicion
+    }
+    FACULTADES {
+        serial id_facultad PK
+        varchar nombre
+        varchar codigo
+        date fecha_fundacion
+    }
+    USUARIOS {
+        serial id_usuario PK
+        varchar numero_carnet
+        varchar nombres
+        varchar apellidos
+        varchar email
+        varchar tipo_usuario
+        int id_facultad FK
+    }
+    PRESTAMOS {
+        serial id_prestamo PK
+        int id_ejemplar FK
+        int id_usuario FK
+        timestamp fecha_prestamo
+        date fecha_devolucion_prevista
+        varchar estado_prestamo
+    }
+    MULTAS {
+        serial id_multa PK
+        int id_prestamo FK
+        numeric monto
+        varchar motivo
+        varchar estado_multa
+    }
+    RESERVAS {
+        serial id_reserva PK
+        int id_libro FK
+        int id_usuario FK
+        timestamp fecha_reserva
+        date fecha_expiracion
+        varchar estado_reserva
+    }
+
+    CATEGORIAS  ||--o{ LIBROS         : "clasifica"
+    EDITORIALES ||--o{ LIBROS         : "publica"
+    LIBROS      ||--o{ LIBRO_AUTORES  : "escrito por"
+    AUTORES     ||--o{ LIBRO_AUTORES  : "escribe"
+    LIBROS      ||--o{ EJEMPLARES     : "tiene"
+    EJEMPLARES  ||--o{ PRESTAMOS      : "se presta en"
+    USUARIOS    ||--o{ PRESTAMOS      : "realiza"
+    PRESTAMOS   ||--o| MULTAS         : "genera"
+    LIBROS      ||--o{ RESERVAS       : "reservado en"
+    USUARIOS    ||--o{ RESERVAS       : "hace"
+    FACULTADES  ||--o{ USUARIOS       : "pertenece a"
+`;
+
+const { svg } = await mermaid.render('erd-main', diagram);
+document.getElementById('erd-wrap').innerHTML = svg;
+
+document.querySelectorAll('#erd-wrap svg.erDiagram .node').forEach(node => {
+  const firstPath = node.querySelector('path[d]');
+  if (!firstPath) return;
+  const d = firstPath.getAttribute('d');
+  const nums = d.match(/-?[\d.]+/g)?.map(Number);
+  if (!nums || nums.length < 8) return;
+  const xs = [nums[0], nums[2], nums[4], nums[6]];
+  const ys = [nums[1], nums[3], nums[5], nums[7]];
+  const x = Math.min(...xs), y = Math.min(...ys);
+  const w = Math.max(...xs) - x, h = Math.max(...ys) - y;
+  const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+  rect.setAttribute('x', x); rect.setAttribute('y', y);
+  rect.setAttribute('width', w); rect.setAttribute('height', h);
+  rect.setAttribute('rx', '8');
+  for (const a of ['fill', 'stroke', 'stroke-width', 'class', 'style']) {
+    if (firstPath.hasAttribute(a)) rect.setAttribute(a, firstPath.getAttribute(a));
+  }
+  firstPath.replaceWith(rect);
+});
+
+document.querySelectorAll('#erd-wrap svg.erDiagram .row-rect-odd path, #erd-wrap svg.erDiagram .row-rect-even path').forEach(p => {
+  p.setAttribute('stroke', 'none');
+});
+</script>
